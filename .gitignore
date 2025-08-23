@@ -1,0 +1,14 @@
+.idea/
+*.iml
+target/
+out/
+build/
+*.log
+.DS_Store
+.gradle/
+gradle-app.setting
+.mvn/
+**/mvnw
+**/mvnw.cmd
+*.pid
+.metadata/
