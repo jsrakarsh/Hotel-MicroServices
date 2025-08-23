@@ -40,4 +40,19 @@ public class UserController {
         return ResponseEntity.ok(allUser);
     }
 
+    // DELETE USER
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<String> deleteUser(@PathVariable String userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok("User deleted successfully with ID: " + userId);
+    }
+
+    // UPDATE USER
+    @PutMapping("/{userId}")
+    public ResponseEntity<User> updateUser(@PathVariable String userId, @RequestBody User user) {
+        User updatedUser = userService.updateUser(userId, user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+
 }
