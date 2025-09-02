@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Rating {
 
     @Id
+    @org.springframework.data.mongodb.core.mapping.Field(name = "_id")
     private String ratingId;
     private String userId;
     private String hotelId;
