@@ -4,6 +4,8 @@ import com.akarsh.user.service.entities.Hotel;
 import com.akarsh.user.service.entities.Rating;
 import com.akarsh.user.service.entities.User;
 import com.akarsh.user.service.exceptions.ResourceNotFoundException;
+import com.akarsh.user.service.external.services.HotelService;
+import com.akarsh.user.service.external.services.RatingService;
 import com.akarsh.user.service.repositories.UserRepository;
 import com.akarsh.user.service.services.UserService;
 import org.slf4j.Logger;
@@ -28,6 +30,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private HotelService hotelService;
+
+    @Autowired
+    private RatingService ratingService;
+
     private Logger logger= LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
@@ -47,15 +55,17 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User with given Id is not available on Server :" + userId));
 
+        /* USING REST TEMPLATE
+
         Rating[] ratingsOfUser = restTemplate.getForObject(
-                "http://localhost:8083/ratings/user/" + user.getUserId(), Rating[].class);
+                "http://RATINGSERVICE/ratings/user/" + user.getUserId(), Rating[].class);
         logger.info("Ratings fetched: {}", ratingsOfUser);
 
         List<Rating> ratings = Arrays.stream(ratingsOfUser) .toList();
 
         List<Rating> ratingList = ratings.stream().map(rating -> {
             ResponseEntity<Hotel> forEntity = restTemplate.getForEntity(
-                    "http://localhost:8082/hotels/" + rating.getHotelId(), Hotel.class);
+                    "http://HOTEL-SERVICE/hotels/" + rating.getHotelId(), Hotel.class);
             Hotel hotel = forEntity.getBody();
             rating.setHotel(hotel);
             return rating;
@@ -64,6 +74,26 @@ public class UserServiceImpl implements UserService {
         user.setRatings(ratingList);
         return user;
     }
+
+         */
+
+        // Using Feign Client
+
+        //Fetch ratings of user using Feign (not RestTemplate)
+        List<Rating> ratings = ratingService.getRatingsByUserId(user.getUserId());
+        logger.info("Ratings fetched: {}", ratings);
+
+        // For each rating, fetch hotel details using Feign
+        List<Rating> ratingList = ratings.stream().map(rating -> {
+            Hotel hotel = hotelService.getHotel(rating.getHotelId());
+            rating.setHotel(hotel);
+            return rating;
+        }).collect(Collectors.toList());
+
+        user.setRatings(ratingList);
+        return user;
+    }
+
 
 
 
