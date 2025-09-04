@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "RATINGSERVICE")
+@FeignClient(name = "RATING-SERVICE")
 public interface RatingService  {
 
     @GetMapping("/ratings/user/{userId}")
