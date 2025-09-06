@@ -1,5 +1,6 @@
 package com.akarsh.user.service.controllers;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +34,20 @@ public class UserController {
 
 
     // GET SINGLE USER
+
+    int retryCount = 1;
+
     @GetMapping("/{userId}")
-    @CircuitBreaker(name = "ratingHotelBreaker", fallbackMethod = "ratingHotelFallback")
+
+    // commenting circuit breaker to test retry
+    //@CircuitBreaker(name = "ratingHotelBreaker", fallbackMethod = "ratingHotelFallback")
+
+    @Retry(name="ratingHotelService", fallbackMethod = "ratingHotelFallback")
     public ResponseEntity<User> getSingleUser(@PathVariable String userId) {
+
+        logger.info("Retry count: {}", retryCount);
+        retryCount++;
+
         User user = userService.getUser(userId);
         return ResponseEntity.ok(user);
     }
@@ -45,8 +57,12 @@ public class UserController {
     // the fallback method must have the same return type and parameters as the original method, with an additional parameter for the exception
     // here the original method is getSingleUser which returns ResponseEntity<User> and takes String userId as parameter
     // so the fallback method must return ResponseEntity<User> and take String
+
+
+
     public ResponseEntity<User> ratingHotelFallback(String userId, Exception ex) {
-        logger.info("Fallback is executed because service is down: {}", ex.getMessage());
+        //logger.info("Fallback is executed because service is down: {}", ex.getMessage());
+
 
         User user = User.builder()
                 .email("dummy@gmail.com")
